@@ -225,13 +225,13 @@ function Game() {
       onAllotment: (event) => {
         setAllotment(event);
         setLandGrabLog((current) => [
-          ...current,
           {
             id: `${event.region}-${event.totalAcres}-${current.length}`,
             acres: event.acres,
             region: event.region,
             totalAcres: event.totalAcres
-          }
+          },
+          ...current
         ]);
         window.clearTimeout(window.__mpAllotmentTimer);
         window.__mpAllotmentTimer = window.setTimeout(() => setAllotment(null), 2300);

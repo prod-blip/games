@@ -417,6 +417,53 @@ button {
   .joystick-control.active .joystick-ball {
     transition: none;
   }
+
+  .land-grab-log {
+    left: auto;
+    right: 12px;
+    top: auto;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: min(260px, calc(100vw - 184px));
+    max-height: 142px;
+    padding: 9px;
+    gap: 6px;
+    background: rgba(7, 8, 6, 0.76);
+    border: 1px solid rgba(255, 210, 63, 0.24);
+    border-radius: 8px;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.36);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .land-grab-log strong {
+    font-size: 0.68rem;
+    line-height: 1;
+  }
+
+  .land-grab-log ol {
+    max-height: 102px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .land-grab-log li {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 5px;
+    padding: 5px 6px;
+    border-radius: 6px;
+  }
+
+  .land-grab-log li p {
+    font-size: 0.72rem;
+  }
+
+  .land-grab-log li b {
+    font-size: 0.68rem;
+  }
 }
 
 @media (max-width: 560px) {
@@ -429,63 +476,24 @@ button {
   }
 
   .land-grab-log {
-    left: 8px;
-    top: 8px;
-    width: calc(100vw - 74px);
-    max-height: 42px;
-    padding: 0;
-    gap: 3px;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    pointer-events: none;
-  }
-
-  .land-grab-log strong {
-    width: max-content;
-    padding: 2px 5px;
-    color: #090909;
-    background: rgba(255, 210, 63, 0.92);
-    border-radius: 4px;
-    font-size: 0.52rem;
-    line-height: 1;
+    right: 10px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: calc(100vw - 180px);
+    max-height: 132px;
+    padding: 8px;
   }
 
   .land-grab-log ol {
-    display: flex;
-    gap: 3px;
-    max-height: 24px;
-    overflow: hidden;
+    max-height: 94px;
   }
 
   .land-grab-log li {
-    flex: 0 0 auto;
-    display: inline-grid;
-    grid-template-columns: 14px auto auto;
-    gap: 2px;
-    padding: 2px 4px;
-    border-radius: 4px;
-    background: rgba(8, 8, 8, 0.56);
-    border-color: rgba(255, 210, 63, 0.16);
-  }
-
-  .land-grab-log li p,
-  .land-grab-log li b {
-    max-width: 42px;
-    font-size: 0.5rem;
-    line-height: 1;
-  }
-
-  .land-grab-log li span {
-    border-radius: 4px;
-    font-size: 0.48rem;
-    line-height: 1.1;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 4px;
+    padding: 5px;
   }
 
   .land-grab-log li b {
-    grid-column: auto;
-    font-size: 0.5rem;
+    grid-column: 2;
   }
 }
