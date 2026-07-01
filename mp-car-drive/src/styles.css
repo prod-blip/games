@@ -343,7 +343,7 @@ button {
   display: none;
 }
 
-@media (max-width: 1024px) and (pointer: coarse) {
+@media (max-width: 1024px) {
   .lower-bar {
     left: 14px;
     right: auto;
@@ -463,6 +463,40 @@ button {
 
   .land-grab-log li b {
     font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  .lower-bar {
+    width: 118px;
+    height: 118px;
+  }
+
+  .joystick-control {
+    width: 118px;
+    height: 118px;
+  }
+
+  .joystick-ball {
+    width: 46px;
+    height: 46px;
+  }
+
+  .joystick-crosshair.horizontal {
+    width: 66px;
+  }
+
+  .joystick-crosshair.vertical {
+    height: 66px;
+  }
+
+  .land-grab-log {
+    width: min(260px, calc(100vw - 168px));
+    max-height: 118px;
+  }
+
+  .land-grab-log ol {
+    max-height: 80px;
   }
 }
 

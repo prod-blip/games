@@ -227,6 +227,7 @@ function Game() {
         setLandGrabLog((current) => [
           {
             id: `${event.region}-${event.totalAcres}-${current.length}`,
+            number: current.length + 1,
             acres: event.acres,
             region: event.region,
             totalAcres: event.totalAcres
@@ -371,9 +372,9 @@ function Game() {
             <aside className="land-grab-log" aria-label="Land allotted">
               <strong>Land Allotted</strong>
               <ol>
-                {landGrabLog.map((entry, index) => (
+                {landGrabLog.map((entry) => (
                   <li key={entry.id}>
-                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <span>{String(entry.number).padStart(2, '0')}</span>
                     <p>{entry.region}</p>
                     <b>{entry.acres} acres</b>
                   </li>

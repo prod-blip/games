@@ -147,6 +147,7 @@ export class ThreeScamGame {
     this.cameraShakeAmount = 0;
     this.ended = false;
     this.isMobile = false;
+    this.viewportMode = 'desktop';
 
     this.init();
   }
@@ -550,49 +551,24 @@ export class ThreeScamGame {
   }
 
   updateCamera(delta) {
-    let lookAt = this.isMobile
-      ? new THREE.Vector3(this.playerPosition.x, 0.1, this.playerPosition.z)
-      : new THREE.Vector3(this.playerPosition.x * 0.06, 0.1, this.playerPosition.z * 0.06);
-    let targetPosition = this.isMobile
-      ? new THREE.Vector3(
-        THREE.MathUtils.clamp(this.playerPosition.x, -5.6, 5.6),
-        12.8,
-        THREE.MathUtils.clamp(this.playerPosition.z + 8.4, 5.8, 13.2)
-      )
-      : new THREE.Vector3(
-        THREE.MathUtils.clamp(this.playerPosition.x * 0.12, -1.2, 1.2),
-        12.8,
-        11.2
-      );
+    const cameraTarget = this.getCameraTarget(this.playerPosition, 'play');
+    let lookAt = cameraTarget.lookAt;
+    let targetPosition = cameraTarget.position;
 
     if (this.cameraFocus) {
       const t = Math.min((performance.now() - this.cameraFocus.startedAt) / this.cameraFocus.duration, 1);
       const eased = t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
       const focusPoint = this.cameraFocus.from.clone().lerp(this.cameraFocus.to, eased);
-      lookAt = focusPoint;
-      targetPosition = this.isMobile
-        ? new THREE.Vector3(
-          THREE.MathUtils.clamp(focusPoint.x, -5.6, 5.6),
-          11.2,
-          THREE.MathUtils.clamp(focusPoint.z + 7.2, 5.8, 13.2)
-        )
-        : new THREE.Vector3(
-          focusPoint.x * 0.26,
-          9.4,
-          8.2
-        );
+      const focusTarget = this.getCameraTarget(focusPoint, 'focus');
+      lookAt = focusTarget.lookAt;
+      targetPosition = focusTarget.position;
       if (t >= 1 && !this.jump) {
         this.cameraFocus = null;
       }
     } else if (this.jump) {
-      lookAt = this.playerPosition.clone();
-      targetPosition = this.isMobile
-        ? new THREE.Vector3(
-          THREE.MathUtils.clamp(this.playerPosition.x, -5.6, 5.6),
-          11.8,
-          THREE.MathUtils.clamp(this.playerPosition.z + 7.8, 5.8, 13.2)
-        )
-        : new THREE.Vector3(this.playerPosition.x * 0.22, 10.2, 8.9);
+      const jumpTarget = this.getCameraTarget(this.playerPosition, 'jump');
+      lookAt = jumpTarget.lookAt;
+      targetPosition = jumpTarget.position;
     }
 
     if (performance.now() < this.cameraShakeUntil) {
@@ -604,6 +580,40 @@ export class ThreeScamGame {
 
     this.camera.position.lerp(targetPosition, Math.min(delta * (this.cameraFocus ? 5 : 2), 1));
     this.camera.lookAt(lookAt);
+  }
+
+  getCameraTarget(point, phase) {
+    const isFollowMode = this.viewportMode !== 'desktop';
+    const mode = this.viewportMode;
+    const presets = {
+      phonePortrait: { y: 12.2, z: 7.8, focusY: 10.8, focusZ: 6.8, jumpY: 11.2, jumpZ: 7.2, xClamp: 5.9, zMin: 5.8, zMax: 13.4 },
+      phoneLandscape: { y: 10.6, z: 8.9, focusY: 9.6, focusZ: 7.7, jumpY: 10.0, jumpZ: 8.0, xClamp: 7.0, zMin: 5.8, zMax: 14.2 },
+      tablet: { y: 13.4, z: 9.4, focusY: 11.4, focusZ: 7.8, jumpY: 12.1, jumpZ: 8.4, xClamp: 6.8, zMin: 5.8, zMax: 14.2 }
+    };
+
+    if (!isFollowMode) {
+      const position = phase === 'focus'
+        ? new THREE.Vector3(point.x * 0.26, 9.4, 8.2)
+        : phase === 'jump'
+          ? new THREE.Vector3(point.x * 0.22, 10.2, 8.9)
+          : new THREE.Vector3(THREE.MathUtils.clamp(point.x * 0.12, -1.2, 1.2), 12.8, 11.2);
+      return {
+        position,
+        lookAt: phase === 'play' ? new THREE.Vector3(point.x * 0.06, 0.1, point.z * 0.06) : point.clone()
+      };
+    }
+
+    const preset = presets[mode] ?? presets.tablet;
+    const y = phase === 'focus' ? preset.focusY : phase === 'jump' ? preset.jumpY : preset.y;
+    const zOffset = phase === 'focus' ? preset.focusZ : phase === 'jump' ? preset.jumpZ : preset.z;
+    return {
+      position: new THREE.Vector3(
+        THREE.MathUtils.clamp(point.x, -preset.xClamp, preset.xClamp),
+        y,
+        THREE.MathUtils.clamp(point.z + zOffset, preset.zMin, preset.zMax)
+      ),
+      lookAt: new THREE.Vector3(point.x, 0.1, point.z)
+    };
   }
 
   updateCollectibles(delta) {
@@ -979,10 +989,23 @@ export class ThreeScamGame {
     const rect = this.container.getBoundingClientRect();
     const width = Math.max(1, rect.width);
     const height = Math.max(1, rect.height);
-    this.isMobile = width < 720;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.35 : 2));
+    const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const isPortrait = height >= width;
+    this.viewportMode = coarsePointer && width <= 720
+      ? (isPortrait ? 'phonePortrait' : 'phoneLandscape')
+      : coarsePointer && width <= 1180
+        ? 'tablet'
+        : 'desktop';
+    this.isMobile = this.viewportMode === 'phonePortrait' || this.viewportMode === 'phoneLandscape';
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.viewportMode === 'desktop' ? 2 : 1.35));
     this.camera.aspect = width / height;
-    this.camera.fov = this.isMobile ? 46 : 42;
+    this.camera.fov = this.viewportMode === 'phonePortrait'
+      ? 46
+      : this.viewportMode === 'phoneLandscape'
+        ? 50
+        : this.viewportMode === 'tablet'
+          ? 44
+          : 42;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   }
