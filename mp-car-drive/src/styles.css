@@ -343,7 +343,7 @@ button {
   display: none;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 1024px) and (pointer: coarse) {
   .lower-bar {
     left: 14px;
     right: auto;
@@ -417,7 +417,9 @@ button {
   .joystick-control.active .joystick-ball {
     transition: none;
   }
+}
 
+@media (max-width: 560px) {
   .start-panel {
     padding: 18px;
   }
@@ -429,44 +431,61 @@ button {
   .land-grab-log {
     left: 8px;
     top: 8px;
-    width: calc(100vw - 86px);
-    max-height: 72px;
-    padding: 6px;
-    gap: 4px;
+    width: calc(100vw - 74px);
+    max-height: 42px;
+    padding: 0;
+    gap: 3px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    pointer-events: none;
   }
 
   .land-grab-log strong {
-    font-size: 0.62rem;
+    width: max-content;
+    padding: 2px 5px;
+    color: #090909;
+    background: rgba(255, 210, 63, 0.92);
+    border-radius: 4px;
+    font-size: 0.52rem;
     line-height: 1;
   }
 
   .land-grab-log ol {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
-    max-height: 44px;
+    display: flex;
+    gap: 3px;
+    max-height: 24px;
+    overflow: hidden;
   }
 
   .land-grab-log li {
-    grid-template-columns: 16px minmax(0, 1fr) auto;
-    gap: 3px;
-    padding: 3px 4px;
-    border-radius: 5px;
+    flex: 0 0 auto;
+    display: inline-grid;
+    grid-template-columns: 14px auto auto;
+    gap: 2px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: rgba(8, 8, 8, 0.56);
+    border-color: rgba(255, 210, 63, 0.16);
   }
 
   .land-grab-log li p,
   .land-grab-log li b {
-    font-size: 0.58rem;
+    max-width: 42px;
+    font-size: 0.5rem;
     line-height: 1;
   }
 
   .land-grab-log li span {
     border-radius: 4px;
-    font-size: 0.52rem;
-    line-height: 1.25;
+    font-size: 0.48rem;
+    line-height: 1.1;
   }
 
   .land-grab-log li b {
     grid-column: auto;
-    font-size: 0.54rem;
+    font-size: 0.5rem;
   }
 }
