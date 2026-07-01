@@ -427,32 +427,46 @@ button {
   }
 
   .land-grab-log {
-    left: 10px;
-    top: 10px;
-    width: calc(100vw - 92px);
-    max-height: 20vh;
-    padding: 8px;
-    gap: 6px;
+    left: 8px;
+    top: 8px;
+    width: calc(100vw - 86px);
+    max-height: 72px;
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .land-grab-log strong {
+    font-size: 0.62rem;
+    line-height: 1;
   }
 
   .land-grab-log ol {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 5px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    max-height: 44px;
   }
 
   .land-grab-log li {
-    grid-template-columns: 22px minmax(0, 1fr);
-    gap: 5px;
-    padding: 5px;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    gap: 3px;
+    padding: 3px 4px;
+    border-radius: 5px;
   }
 
   .land-grab-log li p,
   .land-grab-log li b {
-    font-size: 0.74rem;
+    font-size: 0.58rem;
+    line-height: 1;
+  }
+
+  .land-grab-log li span {
+    border-radius: 4px;
+    font-size: 0.52rem;
+    line-height: 1.25;
   }
 
   .land-grab-log li b {
-    grid-column: 2;
-    font-size: 0.68rem;
+    grid-column: auto;
+    font-size: 0.54rem;
   }
 }
