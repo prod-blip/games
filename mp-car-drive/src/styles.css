@@ -303,7 +303,7 @@ button {
 .lower-bar {
   position: absolute;
   right: 16px;
-  bottom: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 5;
   width: min(430px, calc(100vw - 32px));
   pointer-events: none;
@@ -328,6 +328,9 @@ button {
   font-weight: 900;
   touch-action: none;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   backdrop-filter: blur(10px);
 }
 
@@ -338,19 +341,21 @@ button {
 
 @media (max-width: 560px) {
   .lower-bar {
-    left: 10px;
+    left: 12px;
     right: auto;
-    bottom: 10px;
-    width: min(370px, calc(100vw - 20px));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: calc(100vw - 24px);
   }
 
   .touch-controls {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
+    gap: 9px;
   }
 
   .touch-controls button {
-    height: 52px;
+    height: 64px;
+    font-size: 1.65rem;
+    background: rgba(8, 8, 8, 0.82);
   }
 
   .start-panel {
@@ -364,8 +369,8 @@ button {
   .land-grab-log {
     left: 10px;
     top: 10px;
-    width: min(250px, calc(100vw - 20px));
-    max-height: 34vh;
+    width: min(230px, calc(100vw - 20px));
+    max-height: 28vh;
     padding: 10px;
   }
 

@@ -509,6 +509,12 @@ export class ThreeScamGame {
     return vector;
   }
 
+  setControl(name, isActive) {
+    if (name in this.inputState) {
+      this.inputState[name] = isActive;
+    }
+  }
+
   updatePlayer(delta) {
     if (this.jump || this.corruption || this.ended) {
       this.playerVelocity.set(0, 0, 0);
@@ -544,29 +550,49 @@ export class ThreeScamGame {
   }
 
   updateCamera(delta) {
-    let lookAt = new THREE.Vector3(this.playerPosition.x * 0.06, 0.1, this.playerPosition.z * (this.isMobile ? 0.02 : 0.06));
-    let targetPosition = new THREE.Vector3(
-      THREE.MathUtils.clamp(this.playerPosition.x * 0.12, this.isMobile ? -0.8 : -1.2, this.isMobile ? 0.8 : 1.2),
-      this.isMobile ? 14.2 : 12.8,
-      this.isMobile ? 12.8 : 11.2
-    );
+    let lookAt = this.isMobile
+      ? new THREE.Vector3(this.playerPosition.x, 0.1, this.playerPosition.z)
+      : new THREE.Vector3(this.playerPosition.x * 0.06, 0.1, this.playerPosition.z * 0.06);
+    let targetPosition = this.isMobile
+      ? new THREE.Vector3(
+        THREE.MathUtils.clamp(this.playerPosition.x, -5.6, 5.6),
+        15.6,
+        THREE.MathUtils.clamp(this.playerPosition.z + 10.8, 6.8, 15.8)
+      )
+      : new THREE.Vector3(
+        THREE.MathUtils.clamp(this.playerPosition.x * 0.12, -1.2, 1.2),
+        12.8,
+        11.2
+      );
 
     if (this.cameraFocus) {
       const t = Math.min((performance.now() - this.cameraFocus.startedAt) / this.cameraFocus.duration, 1);
       const eased = t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
       const focusPoint = this.cameraFocus.from.clone().lerp(this.cameraFocus.to, eased);
       lookAt = focusPoint;
-      targetPosition = new THREE.Vector3(
-        focusPoint.x * 0.26,
-        this.isMobile ? 10.8 : 9.4,
-        this.isMobile ? 9.8 : 8.2
-      );
+      targetPosition = this.isMobile
+        ? new THREE.Vector3(
+          THREE.MathUtils.clamp(focusPoint.x, -5.6, 5.6),
+          13.2,
+          THREE.MathUtils.clamp(focusPoint.z + 8.6, 6.8, 15.8)
+        )
+        : new THREE.Vector3(
+          focusPoint.x * 0.26,
+          9.4,
+          8.2
+        );
       if (t >= 1 && !this.jump) {
         this.cameraFocus = null;
       }
     } else if (this.jump) {
       lookAt = this.playerPosition.clone();
-      targetPosition = new THREE.Vector3(this.playerPosition.x * 0.22, this.isMobile ? 11.4 : 10.2, this.isMobile ? 10.2 : 8.9);
+      targetPosition = this.isMobile
+        ? new THREE.Vector3(
+          THREE.MathUtils.clamp(this.playerPosition.x, -5.6, 5.6),
+          13.8,
+          THREE.MathUtils.clamp(this.playerPosition.z + 9.4, 6.8, 15.8)
+        )
+        : new THREE.Vector3(this.playerPosition.x * 0.22, 10.2, 8.9);
     }
 
     if (performance.now() < this.cameraShakeUntil) {
@@ -956,7 +982,7 @@ export class ThreeScamGame {
     this.isMobile = width < 720;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.35 : 2));
     this.camera.aspect = width / height;
-    this.camera.fov = this.isMobile ? 50 : 42;
+    this.camera.fov = this.isMobile ? 58 : 42;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   }

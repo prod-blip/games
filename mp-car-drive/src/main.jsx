@@ -6,11 +6,8 @@ import { ThreeScamGame } from './game/ThreeScamGame';
 import './styles.css';
 
 function TouchControls({ activeControls, setControl }) {
-  const timersRef = useRef({});
-
   const activate = (event, name) => {
     event.preventDefault();
-    window.clearTimeout(timersRef.current[name]);
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setControl(name, true);
   };
@@ -21,11 +18,12 @@ function TouchControls({ activeControls, setControl }) {
     setControl(name, false);
   };
 
-  const nudge = (event, name) => {
-    event.preventDefault();
+  const activateTouch = (event, name) => {
     setControl(name, true);
-    window.clearTimeout(timersRef.current[name]);
-    timersRef.current[name] = window.setTimeout(() => setControl(name, false), 180);
+  };
+
+  const releaseTouch = (event, name) => {
+    setControl(name, false);
   };
 
   return (
@@ -44,8 +42,13 @@ function TouchControls({ activeControls, setControl }) {
           onPointerDown={(event) => activate(event, name)}
           onPointerUp={(event) => release(event, name)}
           onPointerCancel={(event) => release(event, name)}
-          onClick={(event) => nudge(event, name)}
+          onPointerLeave={(event) => release(event, name)}
+          onLostPointerCapture={(event) => release(event, name)}
+          onTouchStart={(event) => activateTouch(event, name)}
+          onTouchEnd={(event) => releaseTouch(event, name)}
+          onTouchCancel={(event) => releaseTouch(event, name)}
           onContextMenu={(event) => event.preventDefault()}
+          draggable="false"
         >
           {icon}
         </button>
@@ -204,6 +207,7 @@ function Game() {
 
       event.preventDefault();
       inputStateRef.current[control] = isActive;
+      gameRef.current?.setControl(control, isActive);
       setActiveControls({ ...inputStateRef.current });
     };
 
@@ -220,6 +224,7 @@ function Game() {
 
   const setControl = useCallback((name, isActive) => {
     inputStateRef.current[name] = isActive;
+    gameRef.current?.setControl(name, isActive);
     setActiveControls({ ...inputStateRef.current });
   }, []);
 
