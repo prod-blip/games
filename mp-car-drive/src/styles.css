@@ -14,6 +14,7 @@ body,
 #root {
   width: 100%;
   height: 100%;
+  height: 100dvh;
 }
 
 body {
@@ -30,6 +31,7 @@ button {
 .game-page {
   width: 100%;
   height: 100%;
+  height: 100dvh;
   background:
     radial-gradient(circle at 20% 15%, rgba(231, 29, 29, 0.18), transparent 24%),
     radial-gradient(circle at 80% 75%, rgba(245, 215, 66, 0.14), transparent 30%),
@@ -343,7 +345,7 @@ button {
   display: none;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1180px) {
   .lower-bar {
     left: 14px;
     right: auto;
@@ -466,7 +468,7 @@ button {
   }
 }
 
-@media (max-width: 1024px) and (orientation: landscape) {
+@media (max-width: 1180px) and (orientation: landscape) {
   .lower-bar {
     width: 118px;
     height: 118px;
@@ -529,5 +531,42 @@ button {
 
   .land-grab-log li b {
     grid-column: 2;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .lower-bar {
+    left: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: 104px;
+    height: 104px;
+  }
+
+  .joystick-control {
+    width: 104px;
+    height: 104px;
+  }
+
+  .joystick-ball {
+    width: 42px;
+    height: 42px;
+  }
+
+  .land-grab-log {
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: min(240px, calc(100vw - 136px));
+    max-height: 104px;
+    padding: 7px;
+  }
+
+  .land-grab-log ol {
+    max-height: 70px;
+  }
+
+  .allotment-popup {
+    top: 10px;
+    width: min(420px, calc(100% - 24px));
+    padding: 10px 14px;
   }
 }

@@ -180,6 +180,9 @@ export class ThreeScamGame {
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.container);
+    this.onWindowResize = () => this.resize();
+    window.addEventListener('resize', this.onWindowResize);
+    window.addEventListener('orientationchange', this.onWindowResize);
     this.resize();
   }
 
@@ -586,9 +589,9 @@ export class ThreeScamGame {
     const isFollowMode = this.viewportMode !== 'desktop';
     const mode = this.viewportMode;
     const presets = {
-      phonePortrait: { y: 12.2, z: 7.8, focusY: 10.8, focusZ: 6.8, jumpY: 11.2, jumpZ: 7.2, xClamp: 5.9, zMin: 5.8, zMax: 13.4 },
-      phoneLandscape: { y: 10.6, z: 8.9, focusY: 9.6, focusZ: 7.7, jumpY: 10.0, jumpZ: 8.0, xClamp: 7.0, zMin: 5.8, zMax: 14.2 },
-      tablet: { y: 13.4, z: 9.4, focusY: 11.4, focusZ: 7.8, jumpY: 12.1, jumpZ: 8.4, xClamp: 6.8, zMin: 5.8, zMax: 14.2 }
+      phonePortrait: { y: 12.2, z: 7.8, focusY: 10.8, focusZ: 6.8, jumpY: 11.2, jumpZ: 7.2, xClamp: 5.9, zMin: 5.8, zMax: 13.4, followX: 0.86, lookX: 0.92, lookZ: 0.92 },
+      phoneLandscape: { y: 10.8, z: 8.6, focusY: 9.7, focusZ: 7.5, jumpY: 10.0, jumpZ: 7.8, xClamp: 4.2, zMin: 5.8, zMax: 13.8, followX: 0.48, lookX: 0.58, lookZ: 0.7 },
+      tablet: { y: 13.2, z: 9.0, focusY: 11.4, focusZ: 7.8, jumpY: 12.0, jumpZ: 8.2, xClamp: 4.8, zMin: 5.8, zMax: 13.8, followX: 0.54, lookX: 0.62, lookZ: 0.76 }
     };
 
     if (!isFollowMode) {
@@ -608,11 +611,11 @@ export class ThreeScamGame {
     const zOffset = phase === 'focus' ? preset.focusZ : phase === 'jump' ? preset.jumpZ : preset.z;
     return {
       position: new THREE.Vector3(
-        THREE.MathUtils.clamp(point.x, -preset.xClamp, preset.xClamp),
+        THREE.MathUtils.clamp(point.x * preset.followX, -preset.xClamp, preset.xClamp),
         y,
         THREE.MathUtils.clamp(point.z + zOffset, preset.zMin, preset.zMax)
       ),
-      lookAt: new THREE.Vector3(point.x, 0.1, point.z)
+      lookAt: new THREE.Vector3(point.x * preset.lookX, 0.1, point.z * preset.lookZ)
     };
   }
 
@@ -989,11 +992,13 @@ export class ThreeScamGame {
     const rect = this.container.getBoundingClientRect();
     const width = Math.max(1, rect.width);
     const height = Math.max(1, rect.height);
-    const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const previousMode = this.viewportMode;
     const isPortrait = height >= width;
-    this.viewportMode = coarsePointer && width <= 720
+    const shortSide = Math.min(width, height);
+    const longSide = Math.max(width, height);
+    this.viewportMode = shortSide <= 560
       ? (isPortrait ? 'phonePortrait' : 'phoneLandscape')
-      : coarsePointer && width <= 1180
+      : longSide <= 1180
         ? 'tablet'
         : 'desktop';
     this.isMobile = this.viewportMode === 'phonePortrait' || this.viewportMode === 'phoneLandscape';
@@ -1008,6 +1013,11 @@ export class ThreeScamGame {
           : 42;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+    if (previousMode !== this.viewportMode && this.playerPosition) {
+      const cameraTarget = this.getCameraTarget(this.playerPosition, 'play');
+      this.camera.position.copy(cameraTarget.position);
+      this.camera.lookAt(cameraTarget.lookAt);
+    }
   }
 
   reset() {
@@ -1017,6 +1027,8 @@ export class ThreeScamGame {
   dispose() {
     cancelAnimationFrame(this.animationFrame);
     this.resizeObserver?.disconnect();
+    window.removeEventListener('resize', this.onWindowResize);
+    window.removeEventListener('orientationchange', this.onWindowResize);
     this.renderer?.dispose();
     this.renderer?.domElement?.remove();
   }
