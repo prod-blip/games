@@ -339,23 +339,83 @@ button {
   color: #090909;
 }
 
+.joystick-control {
+  display: none;
+}
+
 @media (max-width: 560px) {
   .lower-bar {
-    left: 12px;
+    left: 14px;
     right: auto;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    width: calc(100vw - 24px);
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: 142px;
+    height: 142px;
   }
 
-  .touch-controls {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 9px;
+  .direction-controls {
+    display: none;
   }
 
-  .touch-controls button {
-    height: 64px;
-    font-size: 1.65rem;
-    background: rgba(8, 8, 8, 0.82);
+  .joystick-control {
+    width: 142px;
+    height: 142px;
+    display: block;
+    pointer-events: auto;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .joystick-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgba(247, 241, 223, 0.2);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, rgba(255, 210, 63, 0.12) 0 34%, transparent 35%),
+      rgba(8, 8, 8, 0.76);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(10px);
+  }
+
+  .joystick-crosshair {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    background: rgba(247, 241, 223, 0.14);
+    transform: translate(-50%, -50%);
+  }
+
+  .joystick-crosshair.horizontal {
+    width: 80px;
+    height: 2px;
+  }
+
+  .joystick-crosshair.vertical {
+    width: 2px;
+    height: 80px;
+  }
+
+  .joystick-ball {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 54px;
+    height: 54px;
+    border: 2px solid rgba(9, 9, 9, 0.82);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 32% 28%, #fff4a6 0 13%, transparent 14%),
+      #f5d742;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.44);
+    transition: transform 70ms linear;
+  }
+
+  .joystick-control.active .joystick-ball {
+    transition: none;
   }
 
   .start-panel {
@@ -369,19 +429,30 @@ button {
   .land-grab-log {
     left: 10px;
     top: 10px;
-    width: min(230px, calc(100vw - 20px));
-    max-height: 28vh;
-    padding: 10px;
+    width: calc(100vw - 92px);
+    max-height: 20vh;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .land-grab-log ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
   }
 
   .land-grab-log li {
-    grid-template-columns: 24px minmax(0, 1fr) auto;
-    gap: 6px;
-    padding: 6px;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 5px;
+    padding: 5px;
   }
 
   .land-grab-log li p,
   .land-grab-log li b {
     font-size: 0.74rem;
+  }
+
+  .land-grab-log li b {
+    grid-column: 2;
+    font-size: 0.68rem;
   }
 }

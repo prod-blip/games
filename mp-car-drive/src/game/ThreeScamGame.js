@@ -556,8 +556,8 @@ export class ThreeScamGame {
     let targetPosition = this.isMobile
       ? new THREE.Vector3(
         THREE.MathUtils.clamp(this.playerPosition.x, -5.6, 5.6),
-        15.6,
-        THREE.MathUtils.clamp(this.playerPosition.z + 10.8, 6.8, 15.8)
+        12.8,
+        THREE.MathUtils.clamp(this.playerPosition.z + 8.4, 5.8, 13.2)
       )
       : new THREE.Vector3(
         THREE.MathUtils.clamp(this.playerPosition.x * 0.12, -1.2, 1.2),
@@ -573,8 +573,8 @@ export class ThreeScamGame {
       targetPosition = this.isMobile
         ? new THREE.Vector3(
           THREE.MathUtils.clamp(focusPoint.x, -5.6, 5.6),
-          13.2,
-          THREE.MathUtils.clamp(focusPoint.z + 8.6, 6.8, 15.8)
+          11.2,
+          THREE.MathUtils.clamp(focusPoint.z + 7.2, 5.8, 13.2)
         )
         : new THREE.Vector3(
           focusPoint.x * 0.26,
@@ -589,8 +589,8 @@ export class ThreeScamGame {
       targetPosition = this.isMobile
         ? new THREE.Vector3(
           THREE.MathUtils.clamp(this.playerPosition.x, -5.6, 5.6),
-          13.8,
-          THREE.MathUtils.clamp(this.playerPosition.z + 9.4, 6.8, 15.8)
+          11.8,
+          THREE.MathUtils.clamp(this.playerPosition.z + 7.8, 5.8, 13.2)
         )
         : new THREE.Vector3(this.playerPosition.x * 0.22, 10.2, 8.9);
     }
@@ -982,7 +982,7 @@ export class ThreeScamGame {
     this.isMobile = width < 720;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.35 : 2));
     this.camera.aspect = width / height;
-    this.camera.fov = this.isMobile ? 58 : 42;
+    this.camera.fov = this.isMobile ? 46 : 42;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   }

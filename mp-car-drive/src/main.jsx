@@ -6,6 +6,42 @@ import { ThreeScamGame } from './game/ThreeScamGame';
 import './styles.css';
 
 function TouchControls({ activeControls, setControl }) {
+  const joystickRef = useRef(null);
+  const [stick, setStick] = useState({ x: 0, y: 0, active: false });
+
+  const setVectorControls = useCallback((x, y) => {
+    const deadZone = 0.24;
+    setControl('left', x < -deadZone);
+    setControl('right', x > deadZone);
+    setControl('up', y < -deadZone);
+    setControl('down', y > deadZone);
+  }, [setControl]);
+
+  const releaseAll = useCallback(() => {
+    setStick({ x: 0, y: 0, active: false });
+    setControl('left', false);
+    setControl('right', false);
+    setControl('up', false);
+    setControl('down', false);
+  }, [setControl]);
+
+  const updateStick = useCallback((clientX, clientY) => {
+    const rect = joystickRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+    const radius = rect.width / 2;
+    const maxDistance = radius - 24;
+    const rawX = clientX - (rect.left + radius);
+    const rawY = clientY - (rect.top + radius);
+    const distance = Math.hypot(rawX, rawY);
+    const scale = distance > maxDistance ? maxDistance / distance : 1;
+    const x = rawX * scale;
+    const y = rawY * scale;
+    setStick({ x, y, active: true });
+    setVectorControls(x / maxDistance, y / maxDistance);
+  }, [setVectorControls]);
+
   const activate = (event, name) => {
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -27,33 +63,84 @@ function TouchControls({ activeControls, setControl }) {
   };
 
   return (
-    <div className="touch-controls" aria-label="Touch movement controls">
-      {[
-        ['left', 'Left', '‹'],
-        ['up', 'Up', '▲'],
-        ['down', 'Down', '▼'],
-        ['right', 'Right', '›']
-      ].map(([name, label, icon]) => (
-        <button
-          key={name}
-          type="button"
-          aria-label={label}
-          className={activeControls[name] ? 'active' : ''}
-          onPointerDown={(event) => activate(event, name)}
-          onPointerUp={(event) => release(event, name)}
-          onPointerCancel={(event) => release(event, name)}
-          onPointerLeave={(event) => release(event, name)}
-          onLostPointerCapture={(event) => release(event, name)}
-          onTouchStart={(event) => activateTouch(event, name)}
-          onTouchEnd={(event) => releaseTouch(event, name)}
-          onTouchCancel={(event) => releaseTouch(event, name)}
-          onContextMenu={(event) => event.preventDefault()}
-          draggable="false"
-        >
-          {icon}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="touch-controls direction-controls" aria-label="Keyboard-style movement controls">
+        {[
+          ['left', 'Left', '‹'],
+          ['up', 'Up', '▲'],
+          ['down', 'Down', '▼'],
+          ['right', 'Right', '›']
+        ].map(([name, label, icon]) => (
+          <button
+            key={name}
+            type="button"
+            aria-label={label}
+            className={activeControls[name] ? 'active' : ''}
+            onPointerDown={(event) => activate(event, name)}
+            onPointerUp={(event) => release(event, name)}
+            onPointerCancel={(event) => release(event, name)}
+            onPointerLeave={(event) => release(event, name)}
+            onLostPointerCapture={(event) => release(event, name)}
+            onTouchStart={(event) => activateTouch(event, name)}
+            onTouchEnd={(event) => releaseTouch(event, name)}
+            onTouchCancel={(event) => releaseTouch(event, name)}
+            onContextMenu={(event) => event.preventDefault()}
+            draggable="false"
+          >
+            {icon}
+          </button>
+        ))}
+      </div>
+
+      <div
+        ref={joystickRef}
+        className={`joystick-control${stick.active ? ' active' : ''}`}
+        aria-label="Movement joystick"
+        role="application"
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+          updateStick(event.clientX, event.clientY);
+        }}
+        onPointerMove={(event) => {
+          if (stick.active) {
+            event.preventDefault();
+            updateStick(event.clientX, event.clientY);
+          }
+        }}
+        onPointerUp={(event) => {
+          event.preventDefault();
+          event.currentTarget.releasePointerCapture?.(event.pointerId);
+          releaseAll();
+        }}
+        onPointerCancel={releaseAll}
+        onLostPointerCapture={releaseAll}
+        onTouchStart={(event) => {
+          const touch = event.touches[0];
+          if (touch) {
+            updateStick(touch.clientX, touch.clientY);
+          }
+        }}
+        onTouchMove={(event) => {
+          const touch = event.touches[0];
+          if (touch) {
+            updateStick(touch.clientX, touch.clientY);
+          }
+        }}
+        onTouchEnd={releaseAll}
+        onTouchCancel={releaseAll}
+        onContextMenu={(event) => event.preventDefault()}
+      >
+        <div className="joystick-track">
+          <div className="joystick-crosshair horizontal" />
+          <div className="joystick-crosshair vertical" />
+          <div
+            className="joystick-ball"
+            style={{ transform: `translate(calc(-50% + ${stick.x}px), calc(-50% + ${stick.y}px))` }}
+          />
+        </div>
+      </div>
+    </>
   );
 }
 
