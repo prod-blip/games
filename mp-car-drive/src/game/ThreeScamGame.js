@@ -16,6 +16,61 @@ const BELLY_PULSE_SCALE = 1.55;
 const TEMPTATION_GOLD = 0xffd23f;
 const CLAIM_RED = 0x9a2f24;
 
+const CINEMATIC_SCENARIOS = {
+  default: {
+    holdMs: 0,
+    flagOrder: ['schools', 'roads', 'hospitals', 'jobs', 'water', 'irrigation'],
+    openingCaption: {
+      kicker: 'Development Mission',
+      title: 'The camera follows the CM toward public goals.'
+    },
+    followCaption: {
+      kicker: 'Recording Mode',
+      title: 'Each public goal can redirect the route toward nearby land.'
+    }
+  },
+  intro: {
+    holdMs: 4200,
+    flagOrder: ['roads', 'schools', 'hospitals'],
+    openingCaption: {
+      kicker: 'Intro Scene',
+      title: 'Development goals appear first: roads, schools, hospitals, jobs.'
+    },
+    followCaption: {
+      kicker: 'Route Begins',
+      title: 'Now watch whether the public route stays public.'
+    }
+  },
+  'land-pull': {
+    holdMs: 900,
+    flagOrder: ['roads', 'hospitals', 'jobs', 'housing'],
+    openingCaption: {
+      kicker: 'Land Pull Scene',
+      title: 'A public goal becomes the trigger for a land-deal detour.'
+    },
+    followCaption: {
+      kicker: 'Capture Moment',
+      title: 'The camera is set up for the redirect from goal to parcel.'
+    }
+  },
+  finale: {
+    holdMs: 900,
+    flagOrder: ['jobs', 'water', 'irrigation', 'schools', 'roads'],
+    openingCaption: {
+      kicker: 'Finale Scene',
+      title: 'The drive keeps promising development while the land bank grows.'
+    },
+    followCaption: {
+      kicker: 'Final Run',
+      title: 'Follow the last goals for a fast capture-friendly ending sequence.'
+    }
+  }
+};
+
+function getCinematicScenarioConfig(scenario) {
+  return CINEMATIC_SCENARIOS[scenario] ?? CINEMATIC_SCENARIOS.default;
+}
+
 function hexToNumber(color) {
   return Number.parseInt(color.replace('#', ''), 16);
 }
@@ -127,10 +182,13 @@ function makeGlowRing(radius, color = TEMPTATION_GOLD) {
 }
 
 export class ThreeScamGame {
-  constructor(container, { inputState, callbacks }) {
+  constructor(container, { inputState, callbacks, mode = 'play', scenario = 'default' }) {
     this.container = container;
     this.inputState = inputState;
     this.callbacks = callbacks;
+    this.mode = mode;
+    this.isCinematic = mode === 'cinematic';
+    this.cinematicScenario = this.isCinematic ? scenario : 'default';
     this.landGrabbed = new Set();
     this.acresGrabbed = 0;
     this.baitAttempts = 0;
@@ -148,6 +206,7 @@ export class ThreeScamGame {
     this.ended = false;
     this.isMobile = false;
     this.viewportMode = 'desktop';
+    this.cinematic = null;
 
     this.init();
   }
@@ -203,6 +262,9 @@ export class ThreeScamGame {
     this.createParcels();
     this.createFlags();
     this.createPlayer();
+    if (this.isCinematic) {
+      this.startCinematicDirector();
+    }
   }
 
   createLights() {
@@ -525,7 +587,9 @@ export class ThreeScamGame {
       return;
     }
 
-    const desired = this.getInputVector().multiplyScalar(WALK_SPEED);
+    const desired = this.isCinematic
+      ? this.getCinematicInputVector().multiplyScalar(WALK_SPEED * 0.72)
+      : this.getInputVector().multiplyScalar(WALK_SPEED);
     this.playerVelocity.copy(desired);
     if (this.playerVelocity.length() > WALK_SPEED) {
       this.playerVelocity.setLength(WALK_SPEED);
@@ -586,9 +650,10 @@ export class ThreeScamGame {
   }
 
   getCameraTarget(point, phase) {
-    const isFollowMode = this.viewportMode !== 'desktop';
+    const isFollowMode = this.viewportMode !== 'desktop' || this.isCinematic;
     const mode = this.viewportMode;
     const presets = {
+      cinematic: { y: 10.8, z: 6.2, focusY: 8.5, focusZ: 4.6, jumpY: 8.2, jumpZ: 4.8, xClamp: 4.1, zMin: 4.4, zMax: 11.8, followX: 0.76, lookX: 0.9, lookZ: 0.9 },
       phonePortrait: { y: 12.2, z: 7.8, focusY: 10.8, focusZ: 6.8, jumpY: 11.2, jumpZ: 7.2, xClamp: 5.9, zMin: 5.8, zMax: 13.4, followX: 0.86, lookX: 0.92, lookZ: 0.92 },
       phoneLandscape: { y: 10.8, z: 8.6, focusY: 9.7, focusZ: 7.5, jumpY: 10.0, jumpZ: 7.8, xClamp: 4.2, zMin: 5.8, zMax: 13.8, followX: 0.48, lookX: 0.58, lookZ: 0.7 },
       tablet: { y: 13.2, z: 9.0, focusY: 11.4, focusZ: 7.8, jumpY: 12.0, jumpZ: 8.2, xClamp: 4.8, zMin: 5.8, zMax: 13.8, followX: 0.54, lookX: 0.62, lookZ: 0.76 }
@@ -606,7 +671,7 @@ export class ThreeScamGame {
       };
     }
 
-    const preset = presets[mode] ?? presets.tablet;
+    const preset = this.isCinematic ? presets.cinematic : presets[mode] ?? presets.tablet;
     const y = phase === 'focus' ? preset.focusY : phase === 'jump' ? preset.jumpY : preset.y;
     const zOffset = phase === 'focus' ? preset.focusZ : phase === 'jump' ? preset.jumpZ : preset.z;
     return {
@@ -640,6 +705,52 @@ export class ThreeScamGame {
     });
   }
 
+  startCinematicDirector() {
+    const scenario = getCinematicScenarioConfig(this.cinematicScenario);
+    const now = performance.now();
+    this.cinematic = {
+      startedAt: now,
+      holdUntil: now + scenario.holdMs,
+      activeFlagIndex: 0,
+      waitingForGrab: false,
+      lastCaptionAt: 0,
+      flagOrder: scenario.flagOrder
+    };
+    this.callbacks.onCinematicCaption?.(scenario.openingCaption);
+    window.setTimeout(() => {
+      if (!this.ended) {
+        this.callbacks.onCinematicCaption?.(scenario.followCaption);
+      }
+    }, Math.max(2200, scenario.holdMs));
+  }
+
+  getCinematicFlag() {
+    if (!this.cinematic) {
+      return null;
+    }
+    const id = this.cinematic.flagOrder[this.cinematic.activeFlagIndex % this.cinematic.flagOrder.length];
+    return this.flags.find((flag) => flag.id === id) ?? this.flags[this.cinematic.activeFlagIndex % this.flags.length];
+  }
+
+  getCinematicInputVector() {
+    const flag = this.getCinematicFlag();
+    if (!flag || this.cinematic?.waitingForGrab || performance.now() < (this.cinematic?.holdUntil ?? 0)) {
+      return new THREE.Vector3();
+    }
+    const target = new THREE.Vector3(flag.x, PLAYER_START.y, flag.z);
+    const vector = target.sub(this.playerPosition);
+    vector.y = 0;
+    const distance = vector.length();
+    if (distance < 1.35 && this.cinematic.nearFlagId !== flag.id) {
+      this.cinematic.nearFlagId = flag.id;
+      this.callbacks.onCinematicCaption?.({
+        kicker: 'Goal In Sight',
+        title: `${flag.label} is almost within reach.`
+      });
+    }
+    return distance > 0.01 ? vector.normalize() : vector;
+  }
+
   triggerFlagBait(flag) {
     if (this.jump || this.corruption || this.ended) {
       return;
@@ -653,8 +764,17 @@ export class ThreeScamGame {
     }
     this.baitAttempts += 1;
     flag.cooldownUntil = performance.now() + 1900;
+    if (this.cinematic) {
+      this.cinematic.waitingForGrab = true;
+    }
     this.pulseFlag(flag);
     this.makeBurst(flag.x, flag.z, hexToNumber(flag.color));
+    if (this.isCinematic) {
+      this.callbacks.onCinematicCaption?.({
+        kicker: 'Camera Shift',
+        title: `A public goal turns into ${availableParcels.length} tempting land tracts.`
+      });
+    }
     this.startCorruptionSequence(parcel, flag);
     this.callbacks.onUpdate?.(this.getStats());
   }
@@ -764,7 +884,32 @@ export class ThreeScamGame {
       totalAcres: this.acresGrabbed,
       flag: flag?.label
     });
+    if (this.isCinematic) {
+      this.advanceCinematic(parcel, flag);
+    }
     this.callbacks.onUpdate?.(this.getStats());
+  }
+
+  advanceCinematic(parcel, flag) {
+    if (!this.cinematic) {
+      return;
+    }
+    this.callbacks.onCinematicCaption?.({
+      kicker: 'Land Allotted',
+      title: `${parcel.acres} acres in ${parcel.name}. ${flag?.label ?? 'Development'} can wait.`
+    });
+    this.cinematic.activeFlagIndex += 1;
+    this.cinematic.waitingForGrab = false;
+    window.setTimeout(() => {
+      if (this.ended) {
+        return;
+      }
+      const nextFlag = this.getCinematicFlag();
+      this.callbacks.onCinematicCaption?.({
+        kicker: 'Next Goal',
+        title: `Try reaching ${nextFlag?.label ?? 'another development goal'}.`
+      });
+    }, 1900);
   }
 
   highlightParcel(parcel) {
@@ -1001,6 +1146,9 @@ export class ThreeScamGame {
       : longSide <= 1180
         ? 'tablet'
         : 'desktop';
+    if (this.isCinematic) {
+      this.viewportMode = 'cinematic';
+    }
     this.isMobile = this.viewportMode === 'phonePortrait' || this.viewportMode === 'phoneLandscape';
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.viewportMode === 'desktop' ? 2 : 1.35));
     this.camera.aspect = width / height;
@@ -1010,6 +1158,8 @@ export class ThreeScamGame {
         ? 50
         : this.viewportMode === 'tablet'
           ? 44
+          : this.viewportMode === 'cinematic'
+            ? 39
           : 42;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);

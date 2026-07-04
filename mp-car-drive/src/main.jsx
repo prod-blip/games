@@ -148,11 +148,19 @@ function Game() {
   const gameRef = useRef(null);
   const sceneRef = useRef(null);
   const audioRef = useRef(null);
+  const queryParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const isCinematic = useMemo(() => {
+    return queryParams.get('mode') === 'cinematic';
+  }, [queryParams]);
+  const cinematicScenario = useMemo(() => queryParams.get('scenario') ?? 'default', [queryParams]);
   const inputStateRef = useRef({ left: false, right: false, up: false, down: false });
   const [activeControls, setActiveControls] = useState(inputStateRef.current);
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(isCinematic);
   const [allotment, setAllotment] = useState(null);
   const [landGrabLog, setLandGrabLog] = useState([]);
+  const [cinematicCaption, setCinematicCaption] = useState(
+    isCinematic ? { kicker: 'Development Mission', title: 'Help CM Mohan Yadav Ji achieve the development goals of the state.' } : null
+  );
   const [stats, setStats] = useState({
     acresGrabbed: 0,
     landParcelsGrabbed: 0,
@@ -238,6 +246,7 @@ function Game() {
         window.__mpAllotmentTimer = window.setTimeout(() => setAllotment(null), 2300);
       },
       onSound: playSound,
+      onCinematicCaption: setCinematicCaption,
       onError: (error) => setSceneError(error?.message ?? String(error))
     }),
     [playSound]
@@ -250,7 +259,9 @@ function Game() {
 
     const game = new ThreeScamGame(sceneRef.current, {
       inputState: inputStateRef.current,
-      callbacks
+      callbacks,
+      mode: isCinematic ? 'cinematic' : 'play',
+      scenario: cinematicScenario
     });
     gameRef.current = game;
 
@@ -258,7 +269,7 @@ function Game() {
       gameRef.current?.dispose();
       gameRef.current = null;
     };
-  }, [callbacks, started]);
+  }, [callbacks, cinematicScenario, isCinematic, started]);
 
   useEffect(() => {
     const keyMap = {
@@ -335,10 +346,12 @@ function Game() {
     if (started) {
       gameRef.current = new ThreeScamGame(sceneRef.current, {
         inputState: inputStateRef.current,
-        callbacks
+        callbacks,
+        mode: isCinematic ? 'cinematic' : 'play',
+        scenario: cinematicScenario
       });
     }
-  }, [callbacks, started]);
+  }, [callbacks, cinematicScenario, started, isCinematic]);
 
   const startGame = useCallback(() => {
     playSound('flag');
@@ -346,20 +359,31 @@ function Game() {
   }, [playSound]);
 
   return (
-    <main className="game-page">
+    <main className={`game-page${isCinematic ? ' cinematic-mode' : ''}`}>
       <section className="game-shell" aria-label="Alleged land parcel collection game">
         <div className="world-wrap">
           <div ref={sceneRef} id="three-game" className="three-game" />
-          {!started && (
+          {!started && !isCinematic && (
             <div className="start-screen">
               <div className="start-panel">
-                <span>Development Mission</span>
-                <h1>Help CM Mohan Yadav Ji achieve the development goals of the state.</h1>
+                <h1>Development Drive</h1>
+                <p>
+                  Drive toward public goals like roads, schools, hospitals, and jobs. But reports allege that around Ujjain,
+                  development corridors became opportunities for private land gain. Can you stay on the public route, or will
+                  the map pull you toward land deals?
+                </p>
+                <small>Based on media reports and political allegations. Claims are disputed.</small>
                 <button type="button" onClick={startGame}>
                   <Play size={18} />
-                  Start
+                  Start Drive
                 </button>
               </div>
+            </div>
+          )}
+          {started && isCinematic && cinematicCaption && !stats.complete && (
+            <div className="cinematic-caption" aria-live="polite">
+              {cinematicCaption.kicker && <span>{cinematicCaption.kicker}</span>}
+              <strong>{cinematicCaption.title}</strong>
             </div>
           )}
           {sceneError && (
@@ -399,13 +423,13 @@ function Game() {
           )}
         </div>
 
-        {started && !stats.complete && (
+        {started && !stats.complete && !isCinematic && (
           <button type="button" className="reset-float" onClick={reset} aria-label="Reset game">
             <RotateCcw size={19} />
           </button>
         )}
 
-        {started && !stats.complete && (
+        {started && !stats.complete && !isCinematic && (
           <div className="lower-bar controls-only">
             <TouchControls activeControls={activeControls} setControl={setControl} />
           </div>

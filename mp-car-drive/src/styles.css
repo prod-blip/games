@@ -75,6 +75,93 @@ button {
   background: #0d140f;
 }
 
+.cinematic-mode {
+  display: grid;
+  place-items: center;
+  background: #020302;
+}
+
+.cinematic-mode .game-shell {
+  width: min(100vw, 56.25dvh);
+  height: min(100dvh, 177.78vw);
+  overflow: hidden;
+  background: #0d140f;
+  box-shadow: 0 0 0 1px rgba(255, 210, 63, 0.18), 0 26px 80px rgba(0, 0, 0, 0.64);
+}
+
+.cinematic-mode .world-wrap {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 22%, transparent 72%, rgba(0, 0, 0, 0.46)),
+    #0d140f;
+}
+
+.cinematic-caption {
+  position: absolute;
+  left: 50%;
+  top: max(18px, env(safe-area-inset-top));
+  z-index: 7;
+  width: calc(100% - 32px);
+  transform: translateX(-50%);
+  display: grid;
+  gap: 7px;
+  padding: 14px 16px;
+  text-align: left;
+  color: #fff8d8;
+  background: linear-gradient(135deg, rgba(3, 8, 6, 0.86), rgba(23, 22, 10, 0.76));
+  border: 1px solid rgba(255, 210, 63, 0.32);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.36);
+  animation: caption-in 320ms ease-out;
+  backdrop-filter: blur(10px);
+}
+
+.cinematic-caption span {
+  color: #ffd23f;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.cinematic-caption strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1rem, 4.8vw, 1.55rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.cinematic-mode .land-grab-log {
+  left: 14px;
+  right: 14px;
+  top: auto;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  width: auto;
+  max-height: 118px;
+  padding: 9px;
+}
+
+.cinematic-mode .land-grab-log ol {
+  max-height: 78px;
+}
+
+.cinematic-mode .allotment-popup {
+  top: auto;
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 132px);
+  width: calc(100% - 32px);
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 .three-game {
   position: absolute;
   inset: 0;
@@ -102,7 +189,8 @@ button {
 }
 
 .start-panel {
-  width: min(560px, 100%);
+  width: min(560px, calc(100vw - 40px));
+  max-width: 100%;
   display: grid;
   gap: 16px;
   padding: 24px;
@@ -127,6 +215,23 @@ button {
   font-size: clamp(1.55rem, 3.4vw, 2.6rem);
   line-height: 1.08;
   letter-spacing: 0;
+}
+
+.start-panel p {
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: rgba(247, 241, 223, 0.88);
+  font-size: clamp(0.95rem, 1.7vw, 1.08rem);
+  line-height: 1.45;
+}
+
+.start-panel small {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: rgba(247, 241, 223, 0.66);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .start-panel button,
