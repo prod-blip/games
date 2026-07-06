@@ -73,13 +73,17 @@ export class Game {
 
     this.hud = new Hud({
       host: this.host,
+      onStart: () => {
+        this.started = true;
+        this.lastTime = performance.now();
+      },
       onRetry: () => {
         this.started = true;
         this.engineAudio.ensureStarted();
         this.reset();
       },
+      onMusicToggle: () => this.engineAudio.toggleMusic(),
     });
-    this.started = true;
     this.setupScene();
     this.applyCinematicScenarioInitialState();
     this.setupInput();
