@@ -147,32 +147,65 @@ export class Game {
   }
 
   private setupInput() {
-    const setButton = (selector: string, key: keyof InputState) => {
-      const button = this.host.querySelector<HTMLButtonElement>(selector);
-      if (!button) return;
-      const down = (event: Event) => {
-        event.preventDefault();
-        if (!this.gameOverSequence.active) {
-          this.input[key] = true;
-          this.hud.setControlPressed(key, true);
-          this.engineAudio.ensureStarted();
-        }
+    const joystick = this.host.querySelector<HTMLElement>('.joystick-track');
+    const ball = this.host.querySelector<HTMLElement>('.joystick-ball');
+    let joystickPointerId: number | null = null;
+
+    const setMobileInput = (x: number, y: number) => {
+      const next = {
+        accelerate: x > 0.18,
+        brakeReverse: x < -0.38,
+        steerUp: y < -0.22,
+        steerDown: y > 0.22,
       };
-      const up = (event: Event) => {
-        event.preventDefault();
-        this.input[key] = false;
-        this.hud.setControlPressed(key, false);
-      };
-      button.addEventListener('pointerdown', down);
-      button.addEventListener('pointerup', up);
-      button.addEventListener('pointercancel', up);
-      button.addEventListener('pointerleave', up);
+
+      this.input.accelerate = next.accelerate;
+      this.input.brakeReverse = next.brakeReverse;
+      this.input.steerUp = next.steerUp;
+      this.input.steerDown = next.steerDown;
+      this.hud.setControlPressed('accelerate', next.accelerate);
+      this.hud.setControlPressed('brakeReverse', next.brakeReverse);
+      this.hud.setControlPressed('steerUp', next.steerUp);
+      this.hud.setControlPressed('steerDown', next.steerDown);
+
+      if (ball) {
+        const maxMove = 54;
+        ball.style.transform = `translate(${x * maxMove}px, ${y * maxMove}px)`;
+      }
     };
 
-    setButton('.left', 'brakeReverse');
-    setButton('.up', 'steerUp');
-    setButton('.down', 'steerDown');
-    setButton('.right', 'accelerate');
+    const resetMobileInput = () => {
+      joystickPointerId = null;
+      setMobileInput(0, 0);
+      if (ball) ball.style.transform = 'translate(0, 0)';
+    };
+
+    const updateJoystick = (event: PointerEvent) => {
+      if (!joystick || this.gameOverSequence.active) return;
+      event.preventDefault();
+      const rect = joystick.getBoundingClientRect();
+      const radius = Math.max(1, Math.min(rect.width, rect.height) / 2);
+      const rawX = (event.clientX - rect.left - rect.width / 2) / radius;
+      const rawY = (event.clientY - rect.top - rect.height / 2) / radius;
+      const length = Math.hypot(rawX, rawY);
+      const scale = length > 1 ? 1 / length : 1;
+      setMobileInput(rawX * scale, rawY * scale);
+      this.engineAudio.ensureStarted();
+    };
+
+    if (joystick) {
+      joystick.addEventListener('pointerdown', (event) => {
+        joystickPointerId = event.pointerId;
+        joystick.setPointerCapture(event.pointerId);
+        updateJoystick(event);
+      });
+      joystick.addEventListener('pointermove', (event) => {
+        if (joystickPointerId === event.pointerId) updateJoystick(event);
+      });
+      joystick.addEventListener('pointerup', resetMobileInput);
+      joystick.addEventListener('pointercancel', resetMobileInput);
+      joystick.addEventListener('lostpointercapture', resetMobileInput);
+    }
 
     window.addEventListener('keydown', (event) => {
       if (event.code === 'KeyR') {
@@ -479,12 +512,16 @@ export class Game {
     const speedRatio = THREE.MathUtils.clamp(Math.abs(this.vehicle.velocity) / ENDLESS_TUNING.baseMaxSpeed, 0, 1);
     const damageRatio = THREE.MathUtils.clamp((this.vehicle.damage + this.vehicle.degradation) / 160, 0, 1);
     const danger = this.chase.monsterPressure;
-    const showRear = danger * (portrait ? 1.4 : 3.4);
+    const mobileOrTablet = portrait || window.innerWidth <= 1180 || window.matchMedia('(pointer: coarse)').matches;
+    const visualDistance = visualChaserDistance(this.chase);
+    const showRear = danger * (mobileOrTablet ? 2.6 : 3.4);
     const targetX = this.cinematicScenario === 'chaser-behind'
       ? this.vehicle.carX + (portrait ? 0.8 : 2.5)
-      : this.vehicle.carX + (portrait ? 3.4 : 6.3) - showRear + speedRatio * (portrait ? 1.5 : 3.2);
-    const cameraHeight = portrait ? 11.2 + damageRatio : this.cinematic ? 5.8 : 7.2 + damageRatio * 0.7;
-    const cameraDistance = portrait ? 22 + damageRatio * 5 : 15.5 + damageRatio * 4 + danger * 1.5;
+      : mobileOrTablet
+        ? this.vehicle.carX - visualDistance * (portrait ? 0.48 : 0.38) + speedRatio * (portrait ? 0.45 : 0.9)
+        : this.vehicle.carX + 6.3 - showRear + speedRatio * 3.2;
+    const cameraHeight = portrait ? 12.4 + damageRatio : mobileOrTablet ? 7.4 + damageRatio * 0.8 : this.cinematic ? 5.8 : 7.2 + damageRatio * 0.7;
+    const cameraDistance = portrait ? 25 + damageRatio * 5 + danger * 1.8 : mobileOrTablet ? 18.5 + damageRatio * 4 + danger * 2.6 : 15.5 + damageRatio * 4 + danger * 1.5;
 
     this.camera.position.x = THREE.MathUtils.lerp(this.camera.position.x, targetX, 0.08 + speedRatio * 0.02);
     this.camera.position.y = THREE.MathUtils.lerp(this.camera.position.y, cameraHeight, 0.05);
@@ -514,8 +551,12 @@ export class Game {
     const shakeScale = this.cameraShake * (0.08 + damageRatio * 0.08) + danger * 0.015 + sequenceShake;
     this.camera.position.x += (Math.random() - 0.5) * shakeScale;
     this.camera.position.y += (Math.random() - 0.5) * shakeScale * 0.8;
-    const lookX = this.cinematicScenario === 'chaser-behind' ? this.vehicle.carX - 0.4 : this.vehicle.carX + 3 - danger * 2;
-    this.camera.lookAt(lookX, this.cinematic ? 0.45 : 0.7, this.vehicle.carZ * 0.35);
+    const lookX = this.cinematicScenario === 'chaser-behind'
+      ? this.vehicle.carX - 0.4
+      : mobileOrTablet
+        ? this.vehicle.carX - visualDistance * (portrait ? 0.52 : 0.42)
+        : this.vehicle.carX + 3 - danger * 2;
+    this.camera.lookAt(lookX, this.cinematic ? 0.45 : mobileOrTablet ? 0.62 : 0.7, this.vehicle.carZ * 0.35);
     this.renderer.render(this.scene, this.camera);
   }
 

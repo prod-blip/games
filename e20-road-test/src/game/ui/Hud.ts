@@ -82,12 +82,20 @@ export class Hud {
     const controls = document.createElement('div');
     controls.className = 'touch-controls';
     controls.innerHTML = `
-      <button class="control left" type="button" aria-label="Brake or reverse">←<small>brake</small></button>
-      <div class="steer-controls" aria-label="Steering controls">
-        <button class="control steer up" type="button" aria-label="Steer up">▲<small>up</small></button>
-        <button class="control steer down" type="button" aria-label="Steer down">▼<small>down</small></button>
+      <div class="joystick" role="application" aria-label="Mobile driving joystick">
+        <div class="joystick-label joystick-label-top">STEER UP</div>
+        <div class="joystick-track">
+          <div class="joystick-cross joystick-cross-x"></div>
+          <div class="joystick-cross joystick-cross-y"></div>
+          <div class="joystick-ball"></div>
+        </div>
+        <div class="joystick-hints">
+          <span>← brake</span>
+          <strong>drag ball</strong>
+          <span>drive →</span>
+        </div>
+        <div class="joystick-label joystick-label-bottom">STEER DOWN</div>
       </div>
-      <button class="control right" type="button" aria-label="Accelerate">→<small>drive</small></button>
     `;
     this.host.appendChild(controls);
   }
@@ -129,14 +137,15 @@ export class Hud {
   }
 
   setControlPressed(key: 'accelerate' | 'brakeReverse' | 'steerUp' | 'steerDown', pressed: boolean) {
-    const selector = key === 'accelerate'
-      ? '.control.right'
+    const joystick = this.host.querySelector('.joystick');
+    const className = key === 'accelerate'
+      ? 'drive-pressed'
       : key === 'brakeReverse'
-        ? '.control.left'
+        ? 'brake-pressed'
         : key === 'steerUp'
-          ? '.control.up'
-          : '.control.down';
-    this.host.querySelector(selector)?.classList.toggle('pressed', pressed);
+          ? 'up-pressed'
+          : 'down-pressed';
+    joystick?.classList.toggle(className, pressed);
   }
 
 }
