@@ -1,5 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import './styles.css';
 
 const games = [
@@ -46,20 +47,23 @@ function GameCard({ game }) {
 
 function App() {
   return (
-    <main className="page-shell">
-      <section className="hero">
-        <h1>Play like the Government plays with you!</h1>
-        <p>
-          Click on a game to play it in your browser. All games are free.
-        </p>
-      </section>
+    <>
+      <main className="page-shell">
+        <section className="hero">
+          <h1>Play like the Government plays with you!</h1>
+          <p>
+            Click on a game to play it in your browser. All games are free.
+          </p>
+        </section>
 
-      <section className="games-grid" aria-label="Games">
-        {games.map((game) => (
-          <GameCard key={game.title} game={game} />
-        ))}
-      </section>
-    </main>
+        <section className="games-grid" aria-label="Games">
+          {games.map((game) => (
+            <GameCard key={game.title} game={game} />
+          ))}
+        </section>
+      </main>
+      <Analytics />
+    </>
   );
 }
 
