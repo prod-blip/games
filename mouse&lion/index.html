@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Mouse and the Lion</title>
+    <style>
+      #game-loader {
+        --loader-progress: 0%;
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 18% 22%, rgba(129, 140, 248, 0.13) 0 1px, transparent 2px),
+          radial-gradient(circle at 76% 35%, rgba(255, 255, 255, 0.17) 0 1px, transparent 2px),
+          radial-gradient(circle at 62% 78%, rgba(167, 139, 250, 0.12) 0 1px, transparent 2px),
+          linear-gradient(180deg, #090725 0%, #020617 68%, #06130d 100%);
+        background-size: 170px 170px, 230px 230px, 290px 290px, auto;
+        color: #f4f1e8;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.65s ease, visibility 0.65s ease;
+      }
+
+      #game-loader.is-complete {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .loader__content {
+        width: min(82vw, 440px);
+        display: grid;
+        justify-items: center;
+        gap: 18px;
+      }
+
+      .loader__sigil {
+        position: relative;
+        width: 104px;
+        height: 84px;
+        animation: loader-float 2.3s ease-in-out infinite;
+      }
+
+      .loader__hat {
+        position: absolute;
+        left: 8px;
+        top: 8px;
+        width: 88px;
+        height: 32px;
+        border: 2px solid #6e5937;
+        border-radius: 50%;
+        background: linear-gradient(165deg, #c3a66a 0%, #826a42 78%);
+        box-shadow: inset 0 -7px 0 rgba(49, 35, 22, 0.3), 0 10px 22px rgba(0, 0, 0, 0.4);
+      }
+
+      .loader__hat::after {
+        content: '';
+        position: absolute;
+        left: 39px;
+        top: -13px;
+        width: 8px;
+        height: 17px;
+        border-radius: 70% 70% 20% 20%;
+        background: #705837;
+      }
+
+      .loader__rat {
+        position: absolute;
+        left: 35px;
+        top: 31px;
+        width: 34px;
+        height: 47px;
+        border-radius: 45% 45% 34% 34%;
+        background: linear-gradient(90deg, #4d4a40, #24251f);
+      }
+
+      .loader__title {
+        margin: 0;
+        font-size: clamp(26px, 6vw, 42px);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-align: center;
+      }
+
+      .loader__stage {
+        min-height: 20px;
+        margin: -8px 0 2px;
+        color: rgba(226, 232, 240, 0.72);
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .loader__track {
+        position: relative;
+        width: 100%;
+        height: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(226, 232, 240, 0.22);
+        border-radius: 999px;
+        background: rgba(2, 6, 23, 0.7);
+        box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.8), 0 0 24px rgba(99, 102, 241, 0.12);
+      }
+
+      .loader__bar {
+        width: var(--loader-progress);
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #65a34b, #b8db72 62%, #ffe39a);
+        box-shadow: 0 0 18px rgba(190, 222, 125, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        transition: width 0.32s ease;
+      }
+
+      .loader__percent {
+        color: #d8e7bd;
+        font-variant-numeric: tabular-nums;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+      }
+
+      @keyframes loader-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .loader__sigil { animation: none; }
+        .loader__bar { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="game-loader" role="status" aria-live="polite" aria-label="Loading The Mouse and the Lion">
+      <div class="loader__content">
+        <div class="loader__sigil" aria-hidden="true">
+          <div class="loader__rat"></div>
+          <div class="loader__hat"></div>
+        </div>
+        <h1 class="loader__title">THE MOUSE AND THE LION</h1>
+        <p class="loader__stage">Entering the forest</p>
+        <div class="loader__track" aria-hidden="true"><div class="loader__bar"></div></div>
+        <div class="loader__percent">0%</div>
+      </div>
+    </div>
+    <div id="story-intro" class="story-intro" aria-live="polite">
+      <div class="story-intro__title-card">
+        <h1>THE MOUSE AND THE LION</h1>
+        <p>A timeless tale of kindness.</p>
+      </div>
+      <div class="story-intro__dialogue">
+        <strong>Mouse:</strong>
+        <span>“What a beautiful day for an adventure.”</span>
+      </div>
+      <div class="story-intro__prompt">Press any key to begin.</div>
+    </div>
+    <div id="lion-dialogue" class="encounter-dialogue" aria-live="polite">
+      <div class="encounter-dialogue__panel">
+        <div class="encounter-dialogue__speaker"></div>
+        <div class="encounter-dialogue__text"></div>
+        <div class="encounter-dialogue__continue">Press any key to continue</div>
+      </div>
+    </div>
+    <div id="narrator-card" class="narrator-card" aria-live="polite">
+      <div class="narrator-card__panel">
+        <span class="narrator-card__eyebrow">The Storyteller</span>
+        <p class="narrator-card__text"></p>
+        <span class="narrator-card__continue">Press any key to continue</span>
+      </div>
+    </div>
+    <div id="exploration-thought" class="exploration-thought" aria-live="polite">
+      <span class="exploration-thought__speaker">Mouse</span>
+      <span class="exploration-thought__text"></span>
+    </div>
+    <div id="time-passage" class="time-passage" aria-live="polite">
+      <span>A few days later…</span>
+      <small>Morning finds the mouse deeper in the forest.</small>
+    </div>
+    <div id="story-ending" class="story-ending" role="dialog" aria-modal="true" aria-live="polite">
+      <div class="story-ending__card">
+        <p class="story-ending__eyebrow">The lion was free.</p>
+        <h2>Little friends may prove great friends.</h2>
+        <p class="story-ending__moral">Kindness is never wasted.</p>
+        <strong>The End</strong>
+        <button class="story-ending__restart" type="button">Restart Story</button>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
