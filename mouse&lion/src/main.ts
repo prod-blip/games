@@ -1,5 +1,9 @@
 import './style.css';
 import { Game } from './game/Game';
+import { inject } from '@vercel/analytics';
+
+// Initialize Vercel Web Analytics
+inject();
 
 const app = document.querySelector<HTMLDivElement>('#app');
 const loader = document.querySelector<HTMLDivElement>('#game-loader');
