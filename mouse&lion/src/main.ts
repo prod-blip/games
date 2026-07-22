@@ -72,7 +72,7 @@ function delay(duration: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, duration));
 }
 
-function waitForBeginInput(): Promise<void> {
+function waitForBeginInput(onInput?: () => void): Promise<void> {
   return new Promise((resolve) => {
     const cleanup = () => {
       window.removeEventListener('keydown', onKeyDown);
@@ -80,6 +80,10 @@ function waitForBeginInput(): Promise<void> {
     };
     const finish = () => {
       cleanup();
+      // Mobile browsers only allow Web Audio to start synchronously inside a
+      // user-input handler. Run gesture-sensitive work before resolving the
+      // promise so Safari does not lose the transient user activation.
+      onInput?.();
       resolve();
     };
     const onKeyDown = (event: KeyboardEvent) => {
@@ -245,9 +249,7 @@ async function playStoryIntro(activeGame: Game): Promise<void> {
 
   activeGame.revealHud();
   storyPrompt?.classList.add('is-visible');
-  await waitForBeginInput();
-
-  activeGame.enableAudio();
+  await waitForBeginInput(() => activeGame.enableAudio());
 
   storyPrompt?.classList.remove('is-visible');
   storyIntro?.classList.add('is-complete');

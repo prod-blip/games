@@ -228,7 +228,9 @@ export class Game {
   }
 
   enableAudio(): void {
-    void this.audio.start();
+    void this.audio.start().catch((error: unknown) => {
+      console.warn('Unable to start game audio.', error);
+    });
   }
 
   setLionEncounterHandler(handler: () => void): void {
