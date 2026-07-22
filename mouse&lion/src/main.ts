@@ -8,7 +8,6 @@ const loaderPercent = loader?.querySelector<HTMLElement>('.loader__percent');
 const storyIntro = document.querySelector<HTMLElement>('#story-intro');
 const storyTitle = storyIntro?.querySelector<HTMLElement>('.story-intro__title-card');
 const storyDialogue = storyIntro?.querySelector<HTMLElement>('.story-intro__dialogue');
-const storyPrompt = storyIntro?.querySelector<HTMLElement>('.story-intro__prompt');
 const lionDialogue = document.querySelector<HTMLElement>('#lion-dialogue');
 const lionDialogueSpeaker = lionDialogue?.querySelector<HTMLElement>('.encounter-dialogue__speaker');
 const lionDialogueText = lionDialogue?.querySelector<HTMLElement>('.encounter-dialogue__text');
@@ -26,11 +25,6 @@ const usesTouchControls = navigator.maxTouchPoints > 0
   || window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 if (usesTouchControls) {
   document.documentElement.classList.add('has-touch-input');
-  if (storyPrompt) storyPrompt.textContent = 'Tap anywhere to begin.';
-  lionDialogue?.querySelector<HTMLElement>('.encounter-dialogue__continue')
-    ?.replaceChildren('Tap anywhere to continue');
-  narratorCard?.querySelector<HTMLElement>('.narrator-card__continue')
-    ?.replaceChildren('Tap anywhere to continue');
 }
 
 const lionEncounterLines = [
@@ -113,10 +107,9 @@ function showTimePassage(): void {
   window.setTimeout(() => timePassage?.classList.remove('is-visible'), 4200);
 }
 
-function showNarratorCard(text: string, automatic = false): void {
+function showNarratorCard(text: string): void {
   window.clearTimeout(narratorAutoTimer);
   if (narratorText) narratorText.textContent = text;
-  narratorCard?.classList.toggle('is-automatic', automatic);
   narratorCard?.classList.add('is-visible');
 }
 
@@ -127,7 +120,7 @@ async function hideNarratorCard(): Promise<void> {
 }
 
 function playTimedNarration(text: string, duration = 6200): void {
-  showNarratorCard(text, true);
+  showNarratorCard(text);
   narratorAutoTimer = window.setTimeout(() => {
     narratorCard?.classList.remove('is-visible');
   }, duration);
@@ -199,7 +192,6 @@ async function playTrappedLionEncounter(activeGame: Game): Promise<void> {
   await delay(300);
   showNarratorCard(
     'The mouse hurried to the thick ropes. Nibble, nibble, nibble! His tiny teeth worked as fast as they could. One strand snapped, then another, and the heavy net began to loosen.',
-    true,
   );
   activeGame.startNetRescue();
   await delay(5600);
@@ -248,10 +240,8 @@ async function playStoryIntro(activeGame: Game): Promise<void> {
   await delay(850);
 
   activeGame.revealHud();
-  storyPrompt?.classList.add('is-visible');
   await waitForBeginInput(() => activeGame.enableAudio());
 
-  storyPrompt?.classList.remove('is-visible');
   storyIntro?.classList.add('is-complete');
   activeGame.enablePlayerControl();
   window.setTimeout(() => storyIntro?.remove(), 650);

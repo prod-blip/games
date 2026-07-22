@@ -232,31 +232,6 @@ canvas {
   white-space: nowrap;
 }
 
-.story-intro__prompt {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(32px, 7vh, 66px);
-  padding: 10px 17px;
-  border-radius: 999px;
-  background: rgba(2, 6, 15, 0.7);
-  color: #f6edcf;
-  opacity: 0;
-  transform: translate(-50%, 12px);
-  transition: opacity 0.65s ease, transform 0.65s ease;
-  font-size: clamp(13px, 1.8vw, 16px);
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-align: center;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.story-intro__prompt.is-visible {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  animation: intro-prompt-pulse 1.7s ease-in-out infinite;
-}
-
 .story-intro.is-complete {
   opacity: 0;
   transition: opacity 0.55s ease;
@@ -310,21 +285,6 @@ canvas {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(18px, 2.6vw, 25px);
   line-height: 1.38;
-}
-
-.encounter-dialogue__continue {
-  margin-top: 16px;
-  color: rgba(232, 226, 207, 0.62);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-align: right;
-  text-transform: uppercase;
-  animation: intro-prompt-pulse 1.7s ease-in-out infinite;
-}
-
-.encounter-dialogue.is-busy .encounter-dialogue__continue {
-  visibility: hidden;
 }
 
 .narrator-card {
@@ -382,19 +342,6 @@ canvas {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(21px, 3.2vw, 31px);
   line-height: 1.5;
-}
-
-.narrator-card__continue {
-  color: rgba(242, 233, 210, 0.62);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  animation: intro-prompt-pulse 1.7s ease-in-out infinite;
-}
-
-.narrator-card.is-automatic .narrator-card__continue {
-  visibility: hidden;
 }
 
 .exploration-thought {
@@ -579,11 +526,6 @@ canvas {
   transform: translateY(-2px);
 }
 
-@keyframes intro-prompt-pulse {
-  0%, 100% { color: rgba(246, 237, 207, 0.65); }
-  50% { color: #fff8df; }
-}
-
 @media (max-width: 640px) {
   .hud__title {
     max-width: 46vw;
@@ -662,11 +604,6 @@ canvas {
     display: block;
   }
 
-  .encounter-dialogue__continue,
-  .narrator-card__continue,
-  .story-intro__prompt {
-    letter-spacing: 0.09em;
-  }
 }
 
 .has-touch-input .touch-controls {
@@ -689,10 +626,4 @@ canvas {
     min-height: 116px;
     padding: 15px 20px 13px;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .story-intro__prompt.is-visible { animation: none; }
-  .encounter-dialogue__continue { animation: none; }
-  .narrator-card__continue { animation: none; }
 }
